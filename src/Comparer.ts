@@ -1,10 +1,10 @@
 namespace Comparer {
     export function createStringPropertyComparer<T>(propertyName: string): (a: T, b: T) => number {
-        return (a, b) => (<string>a[propertyName]).localeCompare(b[propertyName]);
+        return changeType(stringComparer, (input) => input[propertyName] as string);
     }
 
     export function createToStringComparer<T>(): (a: T, b: T) => number {
-        return (a, b) => (a.toString()).localeCompare(b.toString());
+        return changeType(stringComparer, (input) => input.toString());
     }
 
     export function combine<T>(...comps: Array<(a: T, b: T) => number>): (a: T, b: T) => number {
@@ -23,17 +23,28 @@ namespace Comparer {
         return (a, b) => a === b ? 0 : comp(a, b);
     }
 
+    export function addNullHandling<T>(comp: (a: T, b: T) => number, nullsFirst: boolean): (a: T, b: T) => number {
+        return Comparer.combine((nullsFirst) ? nullsFirstComparer : nullsLastComparer, comp);
+    }
+
     export function nullsFirstComparer<T>(a: T, b: T): number {
-        let aSet = Comparer.isSet(a);
-        let bSet = Comparer.isSet(b);
-        if(!aSet || !bSet) {
-            if(aSet) {
-                return 1;
-            } else if(bSet) {
-                return -1;
-            }
-        }
-        return 0;
+        return booleanComparer(Comparer.isSet(a), Comparer.isSet(b));
+    }
+
+    export function nullsLastComparer<T>(a: T, b: T): number {
+        return booleanComparer(Comparer.isSet(b), Comparer.isSet(a));
+    }
+
+    export function stringComparer(a: string, b: string): number {
+        return a.localeCompare(b);
+    }
+
+    export function numberComparer(a: number, b: number): number {
+        return a - b;
+    }
+
+    export function booleanComparer(a: boolean, b: boolean): number {
+        return (a === b) ? 0 : (a ? 1 : -1);
     }
 
     export function isSet(value: any): boolean {
