@@ -1,29 +1,35 @@
 namespace Comparer {
-    export function createStringPropertyComparer<T>(propertyName: string): (a: T, b: T) => number {
-        return changeType(stringComparer, (input) => input[propertyName] as string);
+    export type Comparer<T> = (a: T, b: T) => number;
+
+    export function createStringPropertyComparer<Key extends string & PropertyKey, T extends Record<Key, string>>(propertyName: Key): Comparer<T> {
+        return createPropertyComparer(propertyName, stringComparer);
+    }
+
+    export function createPropertyComparer<T, Key extends string & keyof T>(propertyName: Key, comparer: Comparer<T[Key]>): Comparer < T > {
+        return changeType(comparer, (input) => input[propertyName]);
     }
 
     export function createToStringComparer<T>(): (a: T, b: T) => number {
         return changeType(stringComparer, (input) => input.toString());
     }
 
-    export function combine<T>(...comps: Array<(a: T, b: T) => number>): (a: T, b: T) => number {
+    export function combine<T>(...comps: Array<Comparer<T>>): Comparer<T> {
         return (a, b) => comps.reduce((ret, comp) => (ret !== 0) ? ret : comp(a, b), 0);
     }
 
-    export function reverse<T>(comp: (a: T, b: T) => number): (b: T, a: T) => number {
+    export function reverse<T>(comp: Comparer<T>): Comparer<T> {
         return (a, b) => comp(b, a);
     }
 
-    export function changeType<FromT, ToT>(comp: (a: FromT, b: FromT) => number, translate: (input: ToT) => FromT): (b: ToT, a: ToT) => number {
+    export function changeType<FromT, ToT>(comp: Comparer<FromT>, translate: (input: ToT) => FromT): Comparer<ToT> {
         return (a, b) => comp(translate(a), translate(b));
     }
 
-    export function shortCircuitEqualValues<T>(comp: (a: T, b: T) => number): (a: T, b: T) => number {
+    export function shortCircuitEqualValues<T>(comp: Comparer<T>): Comparer<T> {
         return (a, b) => a === b ? 0 : comp(a, b);
     }
 
-    export function addNullHandling<T>(comp: (a: T, b: T) => number, nullsFirst: boolean): (a: T, b: T) => number {
+    export function addNullHandling<T>(comp: Comparer<T>, nullsFirst: boolean): Comparer<T> {
         return Comparer.combine((nullsFirst) ? nullsFirstComparer : nullsLastComparer, comp);
     }
 
