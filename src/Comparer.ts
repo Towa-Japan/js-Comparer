@@ -1,16 +1,16 @@
 namespace Comparer {
     export type Comparer<T> = (a: T, b: T) => number;
 
-    export function createStringPropertyComparer<Key extends string & PropertyKey, T extends Record<Key, string>>(propertyName: Key): Comparer<T> {
-        return createPropertyComparer(propertyName, stringComparer);
+    export function createStringPropertyComparer<Key extends string & PropertyKey, T extends Record<Key, string>>(propertyName: Key, nullsFirst: boolean = true): Comparer<T> {
+        return createPropertyComparer(propertyName, shortCircuitEqualValues(addNullHandling(stringComparer, nullsFirst)));
     }
 
     export function createPropertyComparer<T, Key extends string & keyof T>(propertyName: Key, comparer: Comparer<T[Key]>): Comparer < T > {
         return changeType(comparer, (input) => input[propertyName]);
     }
 
-    export function createToStringComparer<T>(): (a: T, b: T) => number {
-        return changeType(stringComparer, (input) => input.toString());
+    export function createToStringComparer<T>(nullsFirst: boolean = true): (a: T, b: T) => number {
+        return changeType(shortCircuitEqualValues(addNullHandling(stringComparer, nullsFirst)), (input) => input.toString());
     }
 
     export function combine<T>(...comps: Array<Comparer<T>>): Comparer<T> {
