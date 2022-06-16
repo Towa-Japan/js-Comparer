@@ -5,11 +5,11 @@ namespace Comparer {
         return createPropertyComparer(propertyName, shortCircuitEqualValues(addNullHandling(stringComparer, nullsFirst)));
     }
 
-    export function createPropertyComparer<T, Key extends string & keyof T>(propertyName: Key, comparer: Comparer<T[Key]>): Comparer < T > {
+    export function createPropertyComparer<T, Key extends string & keyof T>(propertyName: Key, comparer: Comparer<T[Key]>): Comparer <T> {
         return changeType(comparer, (input) => input[propertyName]);
     }
 
-    export function createToStringComparer<T>(nullsFirst: boolean = true): (a: T, b: T) => number {
+    export function createToStringComparer<T extends { toString: () => string }>(nullsFirst: boolean = true): (a: T, b: T) => number {
         return changeType(shortCircuitEqualValues(addNullHandling(stringComparer, nullsFirst)), (input) => input.toString());
     }
 
