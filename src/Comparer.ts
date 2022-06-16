@@ -26,7 +26,11 @@ namespace Comparer {
     }
 
     export function shortCircuitEqualValues<T>(comp: Comparer<T>): Comparer<T> {
-        return (a, b) => a === b ? 0 : comp(a, b);
+        return Comparer.createConditionalComparer(comp, (a, b) => a !== b);
+    }
+
+    export function createConditionalComparer<T>(comp: Comparer<T>, cond: (a: T, b: T) => boolean): Comparer<T> {
+        return (a, b) => cond(a, b) ? comp(a, b) : 0;
     }
 
     export function addNullHandling<T>(comp: Comparer<T>, nullsFirst: boolean): Comparer<T> {
