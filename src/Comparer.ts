@@ -1,11 +1,12 @@
 namespace Comparer {
     export type Comparer<T> = (a: T, b: T) => number;
+    type KeyOfPropertyType<T, R> = ({ [P in keyof T]: T[P] extends R ? P : never})[keyof T];
 
-    export function createStringPropertyComparer<Key extends string & PropertyKey, T extends Record<Key, string>>(propertyName: Key, nullsFirst: boolean = true): Comparer<T> {
-        return createPropertyComparer(propertyName, shortCircuitEqualValues(addNullHandling(stringComparer, nullsFirst)));
+    export function createStringPropertyComparer<T, K extends KeyOfPropertyType<T, string>>(propertyName: K, nullsFirst: boolean = true): Comparer<T> {
+        return createPropertyComparer(propertyName, shortCircuitEqualValues(addNullHandling(stringComparer as unknown as Comparer<T[K]>, nullsFirst)));
     }
 
-    export function createPropertyComparer<T, Key extends string & keyof T>(propertyName: Key, comparer: Comparer<T[Key]>): Comparer <T> {
+    export function createPropertyComparer<T, Key extends keyof T>(propertyName: Key, comparer: Comparer<T[Key]>): Comparer <T> {
         return changeType(comparer, (input) => input[propertyName]);
     }
 
