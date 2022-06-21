@@ -33,7 +33,7 @@ namespace Comparer {
         return (a, b) => cond(a, b) ? comp(a, b) : 0;
     }
 
-    export function createPriorityComparer<K extends PropertyKey, T extends Record<K, number>>(priority: T, nullsFirst: boolean = true): Comparer<keyof T> {
+    export function createPriorityComparer<K extends PropertyKey, T extends Record<K, number>>(priority: T, nullsFirst: boolean = true): Comparer<K> {
         return changeType(shortCircuitEqualValues(addNullHandling(numberComparer, nullsFirst)), i => priority[i]);
     }
 
